@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Safety & Alignment Evaluation Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .filter-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 25px;
+        }
+
+        .filter-section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .results-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .tool-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tool-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .tool-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .tool-category {
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .tool-description {
+            color: #718096;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .tool-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .feature-tag {
+            background: #e6fffa;
+            color: #234e52;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tool-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tool-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tool-link {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .tool-link:hover {
+            background: #5a67d8;
+        }
+
+        .tool-link.secondary {
+            background: #718096;
+        }
+
+        .tool-link.secondary:hover {
+            background: #4a5568;
+        }
+
+        .lifecycle-indicator {
+            display: flex;
+            gap: 5px;
+        }
+
+        .lifecycle-stage {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .lifecycle-stage.active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .recommendation-box {
+            background: #f0fff4;
+            border: 2px solid #9ae6b4;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-title {
+            color: #22543d;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clear-filters {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .clear-filters:hover {
+            background: #c53030;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .no-results h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .filter-panel {
+                position: static;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Safety & Alignment Evaluation Portal</h1>
+            <p>Find the perfect evaluation framework for your AI product lifecycle</p>
+        </div>
+
+        <div class="main-content">
+            <div class="filter-panel">
+                <div class="filter-section">
+                    <h3>🎯 Use Case</h3>
+                    <div class="filter-group">
+                        <label>Primary Application</label>
+                        <select id="useCase">
+                            <option value="">All Use Cases</option>
+                            <option value="llm">Large Language Models</option>
+                            <option value="rag">RAG Systems</option>
+                            <option value="agentic">Agentic AI</option>
+                            <option value="computer-vision">Computer Vision</option>
+                            <option value="healthcare">Healthcare AI</option>
+                            <option value="finance">Financial Services</option>
+                            <option value="governance">AI Governance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>🔄 Lifecycle Stage</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="research" value="research">
+                            <label for="research">Research & Design</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="development" value="development">
+                            <label for="development">Development</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="testing" value="testing">
+                            <label for="testing">Testing & Validation</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="deployment" value="deployment">
+                            <label for="deployment">Deployment</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="monitoring" value="monitoring">
+                            <label for="monitoring">Production Monitoring</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>🏢 Organization Type</h3>
+                    <div class="filter-group">
+                        <select id="orgType">
+                            <option value="">All Organizations</option>
+                            <option value="startup">Startup</option>
+                            <option value="enterprise">Enterprise</option>
+                            <option value="academic">Academic/Research</option>
+                            <option value="government">Government</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>💰 Budget</h3>
+                    <div class="filter-group">
+                        <select id="budget">
+                            <option value="">Any Budget</option>
+                            <option value="free">Free/Open Source</option>
+                            <option value="low">Low Cost ($0-$1K/month)</option>
+                            <option value="medium">Medium Cost ($1K-$10K/month)</option>
+                            <option value="enterprise">Enterprise (Custom Pricing)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>🔍 Evaluation Focus</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="bias" value="bias">
+                            <label for="bias">Bias & Fairness</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="safety" value="safety">
+                            <label for="safety">Safety & Security</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="performance" value="performance">
+                            <label for="performance">Performance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="governance" value="governance">
+                            <label for="governance">Governance & Compliance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="explainability" value="explainability">
+                            <label for="explainability">Explainability</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="clear-filters" onclick="clearAllFilters()">
+                    Clear All Filters
+                </button>
+            </div>
+
+            <div class="results-panel">
+                <div class="results-header">
+                    <h2>Recommended Evaluation Frameworks</h2>
+                    <div class="results-count" id="resultsCount">Loading...</div>
+                </div>
+                <div id="recommendations"></div>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tool database
+        const tools = [
+            {
+                name: "NIST AI Risk Management Framework",
+                category: "Governance",
+                description: "Comprehensive framework for incorporating trustworthiness into AI design, development, and evaluation.",
+                features: ["Risk Assessment", "Trustworthiness", "Compliance", "Documentation"],
+                link: "https://www.nist.gov/itl/ai-risk-management-framework",
+                github: "",
+                useCase: ["governance", "healthcare", "finance"],
+                lifecycle: ["research", "development", "testing", "deployment", "monitoring"],
+                orgType: ["enterprise", "government"],
+                budget: "free",
+                focus: ["governance", "safety"],
+                pricing: "Free"
+            },
+            {
+                name: "Confident AI (DeepEval)",
+                category: "LLM Evaluation",
+                description: "Leading LLM evaluation platform with 400k+ monthly downloads and best-in-class metrics.",
+                features: ["RAG Evaluation", "Agent Testing", "CI/CD Integration", "Regression Detection"],
+                link: "https://www.confident-ai.com/",
+                github: "https://github.com/confident-ai/deepeval",
+                useCase: ["llm", "rag", "agentic"],
+                lifecycle: ["development", "testing", "monitoring"],
+                orgType: ["startup", "enterprise"],
+                budget: "free",
+                focus: ["performance", "safety"],
+                pricing: "Free tier + paid"
+            },
+            {
+                name: "Galileo AI",
+                category: "Gen AI Evaluation",
+                description: "Enterprise-scale generative AI evaluation platform with advanced hallucination detection.",
+                features: ["Hallucination Detection", "Real-time Monitoring", "Enterprise Scale", "CI/CD Integration"],
+                link: "https://galileo.ai/",
+                github: "",
+                useCase: ["llm", "rag"],
+                lifecycle: ["testing", "deployment", "monitoring"],
+                orgType: ["enterprise"],
+                budget: "enterprise",
+                focus: ["performance", "safety"],
+                pricing: "Enterprise"
+            },
+            {
+                name: "RAGAS",
+                category: "RAG Evaluation",
+                description: "Comprehensive evaluation toolkit specifically designed for RAG applications.",
+                features: ["Context Precision", "Faithfulness", "Answer Relevancy", "Synthetic Data"],
+                link: "https://github.com/explodinggradients/ragas",
+                github: "https://github.com/explodinggradients/ragas",
+                useCase: ["rag"],
+                lifecycle: ["development", "testing"],
+                orgType: ["startup", "enterprise", "academic"],
+                budget: "free",
+                focus: ["performance"],
+                pricing: "Open Source"
+            },
+            {
+                name: "IBM AI Fairness 360",
+                category: "Bias & Fairness",
+                description: "Open-source toolkit with 70+ fairness metrics and bias mitigation algorithms.",
+                features: ["70+ Metrics", "Bias Mitigation", "Pre/In/Post Processing", "Educational Resources"],
+                link: "https://aif360.res.ibm.com/",
+                github: "https://github.com/Trusted-AI/AIF360",
+                useCase: ["llm", "computer-vision", "healthcare", "finance"],
+                lifecycle: ["development", "testing", "monitoring"],
+                orgType: ["startup", "enterprise", "academic"],
+                budget: "free",
+                focus: ["bias"],
+                pricing: "Open Source"
+            },
+            {
+                name: "Google's SAIF Framework",
+                category: "Security Framework",
+                description: "Secure AI Framework for building secure-by-default AI systems with enterprise support.",
+                features: ["Security-by-Design", "Platform Controls", "Coalition Support", "Risk Assessment"],
+                link: "https://safety.google/cybersecurity-advancements/saif/",
+                github: "",
+                useCase: ["governance"],
+                lifecycle: ["research", "development", "deployment"],
+                orgType: ["enterprise"],
+                budget: "free",
+                focus: ["security", "governance"],
+                pricing: "Free"
+            },
+            {
+                name: "AutoGen Bench",
+                category: "Agentic AI",
+                description: "Microsoft's framework for multi-agent systems with built-in performance assessment tools.",
+                features: ["Multi-Agent Systems", "Performance Assessment", "Agent Networks", "Benchmarking"],
+                link: "https://github.com/microsoft/autogen",
+                github: "https://github.com/microsoft/autogen",
+                useCase: ["agentic"],
+                lifecycle: ["development", "testing"],
+                orgType: ["startup", "enterprise", "academic"],
+                budget: "free",
+                focus: ["performance"],
+                pricing: "Open Source"
+            },
+            {
+                name: "Arize AI",
+                category: "Production Monitoring",
+                description: "Real-time AI monitoring platform for performance degradation and bias detection.",
+                features: ["Real-time Monitoring", "Drift Detection", "Bias Identification", "Tracing"],
+                link: "https://arize.com/",
+                github: "",
+                useCase: ["llm", "rag", "computer-vision"],
+                lifecycle: ["deployment", "monitoring"],
+                orgType: ["enterprise"],
+                budget: "medium",
+                focus: ["performance", "bias"],
+                pricing: "Paid"
+            },
+            {
+                name: "Humanloop",
+                category: "Enterprise LLM",
+                description: "End-to-end LLM evaluation platform designed for enterprise security and compliance.",
+                features: ["Enterprise Security", "Custom Evaluators", "Human-in-Loop", "Compliance"],
+                link: "https://humanloop.com/",
+                github: "",
+                useCase: ["llm"],
+                lifecycle: ["development", "testing", "monitoring"],
+                orgType: ["enterprise"],
+                budget: "medium",
+                focus: ["performance", "governance"],
+                pricing: "Paid"
+            },
+            {
+                name: "OpenAI Evals",
+                category: "Open Framework",
+                description: "Open-source evaluation framework with community-driven approach for custom testing.",
+                features: ["Custom Tests", "Community Driven", "Flexible Scoring", "Security Integration"],
+                link: "https://github.com/openai/evals",
+                github: "https://github.com/openai/evals",
+                useCase: ["llm"],
+                lifecycle: ["development", "testing"],
+                orgType: ["startup", "academic"],
+                budget: "free",
+                focus: ["performance"],
+                pricing: "Open Source"
+            },
+            {
+                name: "TruLens",
+                category: "RAG Optimization",
+                description: "Domain-specific RAG system optimization with step-by-step response tracking.",
+                features: ["Domain-specific", "Response Tracking", "Performance Optimization", "Visual Analysis"],
+                link: "https://www.trulens.org/",
+                github: "",
+                useCase: ["rag"],
+                lifecycle: ["development", "testing", "monitoring"],
+                orgType: ["enterprise", "academic"],
+                budget: "medium",
+                focus: ["performance"],
+                pricing: "Paid"
+            },
+            {
+                name: "SHAP",
+                category: "Explainability",
+                description: "Unified approach to explain ML model predictions for bias detection and interpretability.",
+                features: ["Model Explanation", "Feature Importance", "Bias Detection", "Framework Agnostic"],
+                link: "https://github.com/slundberg/shap",
+                github: "https://github.com/slundberg/shap",
+                useCase: ["llm", "computer-vision", "healthcare", "finance"],
+                lifecycle: ["development", "testing", "monitoring"],
+                orgType: ["startup", "enterprise", "academic"],
+                budget: "free",
+                focus: ["explainability", "bias"],
+                pricing: "Open Source"
+            }
+        ];
+
+        // Filter functions
+        function getSelectedValues(name) {
+            return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`))
+                .map(cb => cb.value);
+        }
+
+        function getSelectedLifecycleStages() {
+            return Array.from(document.querySelectorAll('#research, #development, #testing, #deployment, #monitoring'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+        }
+
+        function getSelectedFocus() {
+            return Array.from(document.querySelectorAll('#bias, #safety, #performance, #governance, #explainability'))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+        }
+
+        function filterTools() {
+            const useCase = document.getElementById('useCase').value;
+            const orgType = document.getElementById('orgType').value;
+            const budget = document.getElementById('budget').value;
+            const lifecycleStages = getSelectedLifecycleStages();
+            const focusAreas = getSelectedFocus();
+
+            let filteredTools = tools.filter(tool => {
+                // Use case filter
+                if (useCase && !tool.useCase.includes(useCase)) return false;
+                
+                // Organization type filter
+                if (orgType && !tool.orgType.includes(orgType)) return false;
+                
+                // Budget filter
+                if (budget && tool.budget !== budget) return false;
+                
+                // Lifecycle stage filter
+                if (lifecycleStages.length > 0 && !lifecycleStages.some(stage => tool.lifecycle.includes(stage))) return false;
+                
+                // Focus area filter
+                if (focusAreas.length > 0 && !focusAreas.some(focus => tool.focus.includes(focus))) return false;
+                
+                return true;
+            });
+
+            return filteredTools;
+        }
+
+        function generateRecommendations() {
+            const useCase = document.getElementById('useCase').value;
+            const lifecycleStages = getSelectedLifecycleStages();
+            const orgType = document.getElementById('orgType').value;
+            
+            let recommendations = [];
+            
+            if (useCase === 'rag' && lifecycleStages.includes('development')) {
+                recommendations.push({
+                    title: "Perfect for RAG Development",
+                    message: "Consider starting with RAGAS for comprehensive RAG evaluation, then add DeepEval for broader testing capabilities."
+                });
+            }
+            
+            if (useCase === 'agentic') {
+                recommendations.push({
+                    title: "Agentic AI Best Practice",
+                    message: "Use AutoGen Bench for multi-agent evaluation combined with DeepEval for individual agent assessment."
+                });
+            }
+            
+            if (orgType === 'enterprise' && lifecycleStages.includes('monitoring')) {
+                recommendations.push({
+                    title: "Enterprise Production Ready",
+                    message: "Galileo AI or Arize AI provide enterprise-scale monitoring with compliance features."
+                });
+            }
+            
+            if (getSelectedFocus().includes('bias')) {
+                recommendations.push({
+                    title: "Bias Detection Priority",
+                    message: "IBM AI Fairness 360 combined with SHAP provides comprehensive bias analysis and explainability."
+                });
+            }
+
+            return recommendations;
+        }
+
+        function renderRecommendations(recommendations) {
+            const container = document.getElementById('recommendations');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-box">
+                    <div class="recommendation-title">
+                        💡 ${rec.title}
+                    </div>
+                    <div>${rec.message}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderTools(tools) {
+            const container = document.getElementById('results');
+            const countElement = document.getElementById('resultsCount');
+            
+            countElement.textContent = `${tools.length} tools found`;
+            
+            if (tools.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <h3>No tools match your criteria</h3>
+                        <p>Try adjusting your filters to see more options</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tools.map(tool => `
+                <div class="tool-card">
+                    <div class="tool-category">${tool.category}</div>
+                    <div class="tool-header">
+                        <div>
+                            <div class="tool-title">${tool.name}</div>
+                            <div style="color: #667eea; font-weight: 600; font-size: 14px;">${tool.pricing}</div>
+                        </div>
+                    </div>
+                    <div class="tool-description">${tool.description}</div>
+                    <div class="tool-features">
+                        ${tool.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
+                    </div>
+                    <div class="tool-footer">
+                        <div class="tool-links">
+                            <a href="${tool.link}" target="_blank" class="tool-link">Documentation</a>
+                            ${tool.github ? `<a href="${tool.github}" target="_blank" class="tool-link secondary">GitHub</a>` : ''}
+                        </div>
+                        <div class="lifecycle-indicator">
+                            ${tool.lifecycle.map(stage => `<span class="lifecycle-stage active">${stage}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateResults() {
+            const filteredTools = filterTools();
+            const recommendations = generateRecommendations();
+            
+            renderRecommendations(recommendations);
+            renderTools(filteredTools);
+        }
+
+        function clearAllFilters() {
+            document.getElementById('useCase').value = '';
+            document.getElementById('orgType').value = '';
+            document.getElementById('budget').value = '';
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            updateResults();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            updateResults();
+            
+            // Add event listeners to all filter elements
+            document.getElementById('useCase').addEventListener('change', updateResults);
+            document.getElementById('orgType').addEventListener('change', updateResults);
+            document.getElementById('budget').addEventListener('change', updateResults);
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateResults);
+            });
+        });
+    </script>
+</body>
+</html>
